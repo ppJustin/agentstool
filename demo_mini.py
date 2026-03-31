@@ -14,18 +14,18 @@ llm = HelloAgentsLLM()
 agent = SimpleAgent(
     name="AI助手",
     llm=llm,
-    system_prompt="你是一个有用的AI助手"
+    system_prompt="你是一个AI助手,能够解答问题"
 )
 
 # 对话
-response = agent.run("你好！请介绍一下自己")
+response = agent.run("你好！请介绍一下自己，以及你是什么模型")
 print(response)
 
 # 工具模块
 from hello_agents.tools import CalculatorTool
 calculator = CalculatorTool()
 
-
+response = agent.run("请帮我计算 2 + 3 * 4")
 print(response)
 
 # 查看对话历史
