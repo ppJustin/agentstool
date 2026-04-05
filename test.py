@@ -8,7 +8,7 @@ load_dotenv()
 llm = MyLLM(provider="modelscope")
 
 #准备消息
-messages = [{"role":"user","content":"你好，请帮我写一个二分排序算法"}]
+messages = [{"role":"user","content":"你好，介绍一下你自己"}]
 
 #开始调用模型，父类定义的方法无需重写
 response = llm.think(messages)          #这里response是一个构造器
