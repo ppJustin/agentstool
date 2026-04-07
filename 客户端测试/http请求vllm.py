@@ -5,7 +5,7 @@ response = requests.post(
     json={
         "model": "Qwen/Qwen1.5-0.5B-Chat",
         "messages": [
-            {"role": "user", "content": "今天的金价是多少"}
+            {"role": "user", "content": "你使用的是什么架构"}
         ],
         "max_tokens": 100
     }
