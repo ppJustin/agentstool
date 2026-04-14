@@ -39,6 +39,7 @@ class HelloAgentsLLM:
             print("大语言模型调用成功：")
             collect_content = []
             for chunk in response:              #第1次循环: chunk = {"choices":[{"delta":{"content":"你"}}]}
+                    #chunk 是一个 Pydantic 模型对象，不是字典
                 content = chunk.choices[0].delta.content or ""
                 print(content,end="",flush = True)
                 collect_content.append(content)
@@ -57,7 +58,7 @@ if __name__ == '__main__':
 
             exempleMessage = [
                 {"role":"system","content":"You are a helpful assistant that whites Python code"},
-                {"role":"user","content":"写一个快速排序算法"}
+                {"role":"user","content":"今天北京的天气如何"}
             ]
 
             print("调用LLM")

@@ -5,7 +5,7 @@ response = requests.post(
     json={
         "model": "llama3",  # 使用你实际下载的模型名
         "messages": [
-            {"role": "user", "content": "你使用的是什么架构,用中文回答"}
+            {"role": "user", "content": "今天的黄金价格是多少"}
         ],
         "stream": False
     }

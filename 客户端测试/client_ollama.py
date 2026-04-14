@@ -9,7 +9,7 @@ llm_client = HelloAgentsLLM(
 
 # 测试调用
 response = llm_client.think(        #返回的一个生成器对象
-    messages=[{"role": "user", "content": "你好，请简单介绍一下你自己"}]
+    messages=[{"role": "user", "content": "你好，请简单介绍一下你自己,用中文回答"}]
 )
 
 for chunk in response:
