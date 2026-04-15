@@ -2,9 +2,10 @@
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
-from typing import Dict,List,Optional,Literal
+from typing import Optional,Literal,Iterator
 
 load_dotenv()
+
 
 SUPPORTED_PROVIDERS = Literal[
     "openai", "deepseek", "qwen", "modelscope",
@@ -34,11 +35,12 @@ class HelloAgentsLLM:
 
        #进行必要参数验证 
         if not self.model:
-            pass
-        if not all([self.model,apikey,baseUrl]):
-            raise ValueError
+            self.model = self._get_default_model()
+
+        if not all([self.api_key,self.base_url]):
+            raise ValueError("API密钥和服务地址必须被提供或在.env文件中定义。")
         
-        self.client = OpenAI(api_key=apikey,base_url=baseUrl,timeout=timeout)
+        self._client = self._create_client()
 
     def _auto_detect_provider(self,api_key:Optional[str],base_url:Optional[str]) -> str:
         '''
@@ -126,9 +128,9 @@ class HelloAgentsLLM:
         #返回二元组，顺序不可变
         #根据provider获得的提供商名来解析APIKey和url信息
         if self.provider == "openai":
-            resolve_api_key = api_key or os.getenv("OPENAI_API_KEY") or os.getenv("LLM_API_KEY")
+            resolved_api_key = api_key or os.getenv("OPENAI_API_KEY") or os.getenv("LLM_API_KEY")
             resolved_base_url = base_url or os.getenv("LLM_BASE_URL") or "https://api.openai.com/v1"
-            return resolve_api_key,resolved_base_url
+            return resolved_api_key,resolved_base_url
         
         elif self.provider == "deepseek":
             resolved_api_key = api_key or os.getenv("DEEPSEEK_API_KEY") or os.getenv("LLM_API_KEY")
@@ -228,49 +230,73 @@ class HelloAgentsLLM:
                 return "gpt-3.5-turbo"
             
 
-    def think(self,messages:List[Dict[str,str]],temperature : float = 0) -> str:
-        #成功调用大模型进行思考
-        print(f"正在调用大模型{self.model}")
+    def think(self,messages:list[dict[str,str]],temperature : Optional[float] = None) -> Iterator[str]:
+        #成功调用大模型进行思考,并且使用流式响应
+        print(f"🧠 正在调用 {self.model} 模型...")
         try:
-            response = self.client.chat.completions.create(
-                 #API调用链
+            response = self._client.chat.completions.create(
                 model=self.model,
-                messages=messages,                            #对话历史列表
-                temperature=temperature,
-                stream=True,                                   #是否流式逐字返回
+                messages=messages,
+                temperature=temperature if temperature is not None else self.temperature,
+                max_tokens=self.max_tokens,
+                stream=True,
             )
-        
             #正在处理流式响应
             print("大语言模型调用成功：")
-            collect_content = []
             for chunk in response:              #第1次循环: chunk = {"choices":[{"delta":{"content":"你"}}]}
                     #chunk 是一个 Pydantic 模型对象，不是字典
-                content = chunk.choices[0].delta.content or ""
-                print(content,end="",flush = True)
-                collect_content.append(content)
-            print()     #默认换行，end设置成空字符等于不换行
-            return "".join(collect_content)
+                if chunk.choices:
+                    content = chunk.choices[0].delta.content or ""
+                if content:
+                    print(content, end="", flush=True)
+                    yield content
+            print()         #流式输出打印结束之后换行
     
         except Exception as e:
             print(f"调用LLM API时发生错误：{e}")
-            return None
+            raise  # 重新抛出原始异常，保留完整堆栈
 
+    def invoke(self,messages:list[dict[str,str]],**kwargs) -> str:
+        '''
+        非流式响应，直接输出完整答案
+        '''
+        try:
+            response = self._client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=kwargs.get('temperature', self.temperature),
+                max_tokens=kwargs.get('max_tokens', self.max_tokens),
+                **{k: v for k, v in kwargs.items() if k not in ['temperature', 'max_tokens']}
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"调用LLM API时发生错误：{e}")
+            raise  # 重新抛出原始异常
+
+    def stream_invoke(self, messages: list[dict[str, str]], **kwargs) -> Iterator[str]:
+        """
+        流式调用LLM的别名方法，与think方法功能相同。
+        保持向后兼容性。
+        """
+        temperature = kwargs.get('temperature')
+        yield from self.think(messages, temperature)
 
 #_____客户端使用示例
 if __name__ == '__main__':
     try:
-            llmClient = HelloAgentsLLM()
+        llmClient = HelloAgentsLLM(provider="openai")
 
-            exempleMessage = [
-                {"role":"system","content":"You are a helpful assistant that whites Python code"},
-                {"role":"user","content":"今天北京的天气如何"}
-            ]
+        exempleMessage = [
+            {"role": "system", "content": "You are a helpful assistant that writes Python code"},
+            {"role": "user", "content": "你是谁"}
+        ]
 
-            print("调用LLM")
-            responseTxt = llmClient.think(exempleMessage)
-            if responseTxt:
-                print("---完整响应--")
-                print(responseTxt)
+
+        # 方式1：遍历生成器获取响应（因为 think 已经在内部打印了）
+        for chunk in llmClient.think(exempleMessage):
+            pass  # 响应已经在 think 方法中实时打印了
+        
+
 
     except ValueError as e:
         print(e)
