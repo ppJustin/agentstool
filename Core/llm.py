@@ -241,6 +241,7 @@ class HelloAgentsLLM:
                 max_tokens=self.max_tokens,
                 stream=True,
             )
+            #流式响应返回的response是一个可迭代对象，delta是增量信息
             #正在处理流式响应
             print("大语言模型调用成功：")
             for chunk in response:              #第1次循环: chunk = {"choices":[{"delta":{"content":"你"}}]}
@@ -268,6 +269,8 @@ class HelloAgentsLLM:
                 max_tokens=kwargs.get('max_tokens', self.max_tokens),
                 **{k: v for k, v in kwargs.items() if k not in ['temperature', 'max_tokens']}
             )
+
+            #非流式返回完整的content内容
             return response.choices[0].message.content
         except Exception as e:
             print(f"调用LLM API时发生错误：{e}")
