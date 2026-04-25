@@ -282,7 +282,7 @@ class HelloAgentsLLM:
         保持向后兼容性。
         """
         temperature = kwargs.get('temperature')
-        yield from self.think(messages, temperature)
+        yield from self.think(messages, temperature)        #yield from 自动完成了遍历,yield from 会逐个传递每个值
 
 #_____客户端使用示例
 if __name__ == '__main__':
