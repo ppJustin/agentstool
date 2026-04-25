@@ -200,7 +200,7 @@ class MySimpleAgent(SimpleAgent):
 
     def stream_run(self, input_text: str, **kwargs) -> Iterator[str]:
         """
-        自定义的流式运行方法
+        自定义的流式运行方法，有效更新上下文信息
         """
         print(f"🌊 {self.name} 开始流式处理: {input_text}")
 
