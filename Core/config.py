@@ -29,7 +29,7 @@ class Config(BaseModel):
             max_tokens = int(os.getenv("MAX_TOKENS")) if os.getenv("MAX_TOKENS") else None,
         )       #返回一个config类型的对象
     
-    def to_dict(self) -> Dict(str,Any):
+    def to_dict(self) -> Dict[str,Any]:
         #转化为字典
         return self.model_dump()
     #将Pydantic对象转换成Python字典，方便读取
