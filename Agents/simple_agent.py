@@ -5,6 +5,7 @@ from Code_base.simple import SimpleAgent
 from Core.llm import HelloAgentsLLM
 from Core.config import Config
 from Core.message import Message
+from Code_base.registy import ToolRegistry
 
 class MySimpleAgent(SimpleAgent):
     '''
@@ -228,3 +229,27 @@ class MySimpleAgent(SimpleAgent):
         self.add_message(Message(input_text, "user"))
         self.add_message(Message(full_response, "assistant"))
         print(f"✅ {self.name} 流式响应完成")
+
+    def add_tool(self, tool) -> None:
+        """添加工具到的便利方法"""
+        if not self.tool_registry:      #当没有工具注册表的情况下
+            self.tool_registry = ToolRegistry()
+            self.enable_tool_calling = True
+
+        self.tool_registry.register_tool(tool)
+        print(f"🔧 工具 '{tool.name}' 已添加")
+    
+    def remove_tool(self, tool_name: str) -> bool:
+        """移除工具"""
+        if self.tool_registry:
+            self.tool_registry.unregister(tool_name)
+            return True
+        return False
+    
+    def list_tools(self) -> list:
+        """列出所有可用工具"""
+        if self.tool_registry:
+            return self.tool_registry.list_tools()
+        return []
+    
+    
