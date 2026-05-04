@@ -8,7 +8,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
 from Core.llm import HelloAgentsLLM
-from Code_base.registy import ToolRegistry
 from Code_base.calculator import CalculatorTool
 from Agents.simple_agent import MySimpleAgent
 
