@@ -5,7 +5,7 @@ from Code_base.simple import SimpleAgent
 from Core.llm import HelloAgentsLLM
 from Core.config import Config
 from Core.message import Message
-from Code_base.registy import ToolRegistry
+from Code_base.registry import ToolRegistry
 
 class MySimpleAgent(SimpleAgent):
     '''

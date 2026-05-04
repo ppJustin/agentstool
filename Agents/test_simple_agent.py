@@ -3,7 +3,7 @@
 #这是对阶段性代码的简单测试文件
 from dotenv import load_dotenv
 from Core.llm import HelloAgentsLLM
-from Code_base.registy import ToolRegistry
+from Code_base.registry import ToolRegistry
 from Code_base.calculator import CalculatorTool
 from simple_agent import MySimpleAgent
 
