@@ -1,7 +1,4 @@
 # my_react_agent.py
-import re
-from pathlib import Path
-import sys
 from typing import Optional
 from Core.react_agent import ReActAgent
 from Core.llm import HelloAgentsLLM
@@ -10,7 +7,7 @@ from Core.message import Message
 from Code_base.registry import ToolRegistry
 
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+
 
 
 class MyReActAgent(ReActAgent):
