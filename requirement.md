@@ -3,4 +3,5 @@
 python >= 3.11
 hello-agents==0.1.1
 vllm
+qdrant-client
 #这里本地使用VLLM部署Qwen1.5-0.5B-Chat模型
