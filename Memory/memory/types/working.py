@@ -11,7 +11,6 @@ import heapq
 
 from ..base import BaseMemory, MemoryItem, MemoryConfig
 
-
 class WorkingMemory(BaseMemory):
     """工作记忆实现
     
