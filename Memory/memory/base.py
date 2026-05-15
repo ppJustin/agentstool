@@ -57,7 +57,7 @@ class BaseMemory(ABC):
     def __init__(self, config: MemoryConfig, storage_backend=None):
         self.config = config
                 #保存'怎么存数据'的工具
-        self.storage = storage_backend
+        self.storage = storage_backend      #自定义的存储后端
         #获取记忆类型
         self.memory_type = self.__class__.__name__.lower().replace("memory", "")
 
