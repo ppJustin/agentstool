@@ -377,16 +377,32 @@ class QdrantVectorStore:
                 search_params = models.SearchParams(hnsw_ef=self.search_ef, exact=self.search_exact)
             except Exception:
                 search_params = None
-            search_result = self.client.search(
-                collection_name=self.collection_name,
-                query_vector=query_vector,
-                query_filter=query_filter,
-                limit=limit,
-                score_threshold=score_threshold,
-                with_payload=True,
-                with_vectors=False,
-                search_params=search_params
-            )
+            if hasattr(self.client, 'query_points'):
+            # 新版 API
+                search_result = self.client.query_points(
+                    collection_name=self.collection_name,
+                    query=query_vector,  # ← 注意参数名变了
+                    query_filter=query_filter,
+                    limit=limit,
+                    score_threshold=score_threshold,
+                    with_payload=True,
+                    with_vectors=False,
+                    search_params=search_params
+                )
+    # 新版返回的对象需要取 .points 属性
+                search_result = search_result.points
+            else:
+    # 旧版 API（保持兼容）
+                search_result = self.client.search(
+                    collection_name=self.collection_name,
+                    query_vector=query_vector,  # ← 旧版参数名
+                    query_filter=query_filter,
+                    limit=limit,
+                    score_threshold=score_threshold,
+                    with_payload=True,
+                    with_vectors=False,
+                    search_params=search_params
+                )
             
             # 转换结果格式
             results = []
@@ -482,27 +498,28 @@ class QdrantVectorStore:
     def get_collection_info(self) -> Dict[str, Any]:
         """
         获取集合信息
-        
+    
         Returns:
-            Dict: 集合信息
-        """
+        Dict: 集合信息
+    """
         try:
             collection_info = self.client.get_collection(self.collection_name)
-            
+
+            # 兼容新旧版本 API - 使用 getattr 安全获取属性
             info = {
                 "name": self.collection_name,
-                "vectors_count": collection_info.vectors_count,
-                "indexed_vectors_count": collection_info.indexed_vectors_count,
-                "points_count": collection_info.points_count,
-                "segments_count": collection_info.segments_count,
+                "vectors_count": getattr(collection_info, 'vectors_count', 0),
+                "indexed_vectors_count": getattr(collection_info, 'indexed_vectors_count', 0),
+                "points_count": getattr(collection_info, 'points_count', 0),
+                "segments_count": getattr(collection_info, 'segments_count', 0),
                 "config": {
                     "vector_size": self.vector_size,
                     "distance": self.distance.value,
                 }
             }
-            
+        
             return info
-            
+        
         except Exception as e:
             logger.error(f"❌ 获取集合信息失败: {e}")
             return {}
@@ -539,3 +556,31 @@ class QdrantVectorStore:
                 self.client.close()
             except:
                 pass
+
+    
+    def delete_by_namespace(self, namespace: str) -> bool:
+        """安全：只删除特定 namespace 的数据"""
+        try:
+            # 构建过滤条件
+            query_filter = Filter(
+                must=[
+                    FieldCondition(
+                        key="rag_namespace",
+                       match=MatchValue(value=namespace)
+                   )
+               ]
+           )
+
+            # ✅ 直接传递 filter 参数
+            self.client.delete(
+                collection_name=self.collection_name,
+                points_selector=query_filter,  # 直接传 Filter 对象
+                wait=True
+            )
+
+            logger.info(f"✅ 成功删除 namespace '{namespace}' 的所有数据")
+            return True
+        
+        except Exception as e:
+            logger.error(f"❌ 删除 namespace 失败: {e}")
+            return False
