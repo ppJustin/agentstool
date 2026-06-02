@@ -18,7 +18,6 @@ from typing import Dict, List, Optional, Any, Tuple
 from Memory.tools.builtin.memory_tool import MemoryTool
 from Memory.tools.builtin.rag_tool import RAGTool
 import gradio as gr
-from hello_agents.context.builder
 
 class PDFLearningAssistant:
     """智能文档问答助手"""
